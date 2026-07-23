@@ -4,6 +4,18 @@ import { createTask, listTasks } from '../services/api'
 
 const QUICK_TAGS = ['锂电池', '光伏', '半导体', '新能源汽车', '人工智能', '生物医药', '航空航天']
 
+// 后端 created_at 为 UTC（无时区标记），统一按中国时区(UTC+8)显示 年/月/日 时:分（24小时制）
+function formatTaskCreatedAt(iso) {
+  if (!iso) return ''
+  const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+  if (isNaN(d.getTime())) return ''
+  const cn = new Date(d.getTime() + 8 * 3600 * 1000)
+  const date = `${cn.getUTCFullYear()}/${cn.getUTCMonth() + 1}/${cn.getUTCDate()}`
+  const hh = String(cn.getUTCHours()).padStart(2, '0')
+  const mm = String(cn.getUTCMinutes()).padStart(2, '0')
+  return `${date}  ${hh}:${mm}`
+}
+
 export default function HomePage() {
   const [industryName, setIndustryName] = useState('')
   const [maxReports, setMaxReports] = useState(30)
@@ -141,10 +153,7 @@ export default function HomePage() {
                 <div className="task-info">
                   <h4>{task.industry_name}</h4>
                   <span>
-                    {task.created_at
-                      ? new Date(task.created_at).toLocaleString('zh-CN')
-                      : ''}{' '}
-                    | 进度 {task.progress}%
+                    {formatTaskCreatedAt(task.created_at)} | 进度 {task.progress}%
                   </span>
                 </div>
                 <span className={`status-badge ${getStatusClass(task.status)}`}>
